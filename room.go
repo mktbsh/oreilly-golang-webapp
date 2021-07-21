@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"mktbsh/oreilly-golang-webapp/trace"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -12,6 +13,7 @@ type room struct {
 	join    chan *client
 	leave   chan *client
 	clients map[*client]bool
+	tracer  trace.Tracer
 }
 
 func newRoom() *room {
@@ -28,17 +30,21 @@ func (r *room) run() {
 		select {
 		case client := <-r.join:
 			r.clients[client] = true
+			r.tracer.Trace("新しいクライアントが参加しました")
 		case client := <-r.leave:
 			delete(r.clients, client)
 			close(client.send)
+			r.tracer.Trace("クライアントが退出しました")
 		case msg := <-r.forward:
 			for client := range r.clients {
 				select {
 				case client.send <- msg:
-					// todo: send message
+					// send message
+					r.tracer.Trace("クライアントに送信されました")
 				default:
 					delete(r.clients, client)
 					close(client.send)
+					r.tracer.Trace(" -- 送信に失敗しました。クライアントをクリーンアップします。")
 				}
 			}
 		}

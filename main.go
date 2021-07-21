@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"log"
+	"mktbsh/oreilly-golang-webapp/trace"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sync"
 	"text/template"
@@ -27,6 +29,8 @@ func main() {
 	flag.Parse()
 
 	r := newRoom()
+	r.tracer = trace.New(os.Stdout)
+
 	// root
 	http.Handle("/", &templateHandler{filename: "chat.html"})
 	http.Handle("/room", r)
