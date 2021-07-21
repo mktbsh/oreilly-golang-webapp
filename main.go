@@ -31,8 +31,10 @@ func main() {
 	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
 
-	// root
-	http.Handle("/", &templateHandler{filename: "chat.html"})
+	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("assets"))))
+	http.Handle("/login", &templateHandler{filename: "login.html"})
+	http.HandleFunc("/auth/", loginHandler)
+	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
 	http.Handle("/room", r)
 	// start chat room
 	go r.run()
