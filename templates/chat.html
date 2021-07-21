@@ -8,10 +8,12 @@
     <style>
         input { display: block; }
         ul { list-style: none; }
+        p { color: red; }
     </style>
 </head>
 <body>
     <h1>WebSocketを使ったチャットアプリケーション</h1>
+    <p id="system-msg"></p>
     <ul id="messages"></ul>
 
     <form id="chatbox">
@@ -22,6 +24,7 @@
     <script>
         (() => {
             let socket = null;
+            const systemMsg = document.getElementById('system-msg');
             const chatBox = document.getElementById('chatbox');
             const textarea = chatBox.querySelector('textarea');
             const messages = document.getElementById('messages');
@@ -35,7 +38,7 @@
                 }
 
                 socket.send(textarea.value);
-                textarea.textContent = '';
+                textarea.value = '';
                 return false;
             });
 
@@ -44,8 +47,13 @@
                 return;
             }
 
-            socket = new WebSocket('ws://localhost:8080/room');
-            socket.onclose = () => alert('接続が終了しました。');
+            socket = new WebSocket('ws://{{.Host}}/room');
+            socket.onclose = () => {
+                systemMsg.textContent = '接続が終了しました。';
+                setTimeout(() => {
+                    systemMsg.textContent = '';
+                }, 5000);
+            };
             socket.onmessage = (e) => {
                 messages.insertAdjacentHTML('beforeend', `<li>${e.data}</li>`);
             }
