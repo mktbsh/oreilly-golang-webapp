@@ -5,8 +5,51 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>チャット</title>
+    <style>
+        input { display: block; }
+        ul { list-style: none; }
+    </style>
 </head>
 <body>
-    <h1>チャットしましょう！(from template)</h1>
+    <h1>WebSocketを使ったチャットアプリケーション</h1>
+    <ul id="messages"></ul>
+
+    <form id="chatbox">
+        <textarea></textarea>
+        <input type="submit" value="送信" />
+    </form>
+
+    <script>
+        (() => {
+            let socket = null;
+            const chatBox = document.getElementById('chatbox');
+            const textarea = chatBox.querySelector('textarea');
+            const messages = document.getElementById('messages');
+
+            chatBox.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (!textarea.value) return false;
+                if (!socket) {
+                    alert('Error: WebSocket接続が行われていません。');
+                    return false;
+                }
+
+                socket.send(textarea.value);
+                textarea.textContent = '';
+                return false;
+            });
+
+            if (!window.WebSocket) {
+                alert('Error: WebSocketに対応していないブラウザです。');
+                return;
+            }
+
+            socket = new WebSocket('ws://localhost:8080/room');
+            socket.onclose = () => alert('接続が終了しました。');
+            socket.onmessage = (e) => {
+                messages.insertAdjacentHTML('beforeend', `<li>${e.data}</li>`);
+            }
+        })();
+    </script>
 </body>
 </html>
